@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Drunk PlayBack</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+  <script language="JavaScript">
+  var result = [];      // 最終的な二次元配列を入れるための配列 
+
+  //CSVファイルを読み込む関数getCSV()の定義
+  function getCSV(){
+    var req = new XMLHttpRequest();       // HTTPでファイルを読み込むためのXMLHttpRrequestオブジェクトを生成
+    req.open("get", "https://github.com/tkkit13/technoco/blob/master/sample.csv", true);  // アクセスするファイルを指定
+    req.onreadystatechange = function(){
+      if (req.readyState == XMLHttpRequest.DONE){
+        displayLineChart();
+      }
+    }
+    req.send(null);                       // HTTPリクエストの発行
+
+    // レスポンスが返ってきたらconvertCSVtoArray()を呼ぶ	
+    req.onload = function(){
+      convertCSVtoArray(req.responseText); // 渡されるのは読み込んだCSVデータ
+    }
+  }
+  
+  // 読み込んだCSVデータを二次元配列に変換する関数convertCSVtoArray()の定義
+  function convertCSVtoArray(str){ // 読み込んだCSVデータが文字列として渡される
+    //var result = [];
+    var tmp = str.split("\n"); // 改行を区切り文字として行を要素とした配列を生成
+
+    // 各行ごとにカンマで区切った文字列を要素とした二次元配列を生成
+    for(var i = 0; i < tmp.length; ++i){
+      result[i] = tmp[i].split(',');
+    }
+  }
+
+  function displayLineChart()
+  {
+    // データセットの設定
+    var randomScalingFactor = function(){ 
+      return Math.random();
+    };
+
+    var times = [];
+    var csvData = [];
+    for (var i = 0; i < result.length; ++i)
+    {
+      times[i] = result[i][0];
+      csvData[i] = result[i][1];
+    }
+
+    var data = {
+      labels: times,
+      datasets:[
+        {
+          label: "Happiness",
+          fillColor: "rgba(151,187,205,0.2)",
+          strokeColor: "rgba(151,187,205,1)",
+          pointColor: "rgba(151,187,205,1)",
+          pointStrokeColor: "#fff",
+          pointHighlightFill: "#fff",
+          pointHighlightStroke: "rgba(151,187,205,1)",
+          data: csvData
+        }]
+    };
+    
+    var ctx = document.getElementById("lineChart").getContext("2d");
+    
+    // グラフのオプション設定
+    var options = {
+      bezierCurve:false   // 直線で結ぶようにするためのオプション設定
+    };
+    
+    var lineChart = new Chart(ctx).Line(data, options);
+
+    // 10[sec]毎にグラフの再描画を行う
+    setTimeout("displayLineChart()", 5000);
+  }
+
+  // main処理
+  function main(){
+    getCSV();             //最初に実行される
+    //displayLineChart();
+  }
+
+  main();
+  </script>
+</head>
+<body onload="displayLineChart();">
+  <div class="box">
+    <canvas id="lineChart" height="450" width="800"></canvas>
+  </div>
+</body>
+</html>
